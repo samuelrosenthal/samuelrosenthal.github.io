@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8f9fb">
+  <title>Cleaning Schedule</title>
+  <style>
+    :root { font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #17202b; background: #f8f9fb; font-synthesis: none; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: clamp(24px, 6vw, 72px) 18px; }
+    main { max-width: 960px; margin: 0 auto; }
+    .eyebrow { color: #687382; font-size: 12px; font-weight: 650; letter-spacing: .11em; text-transform: uppercase; margin: 0 0 10px; }
+    h1 { font-size: clamp(29px, 5vw, 42px); letter-spacing: -.045em; line-height: 1.12; font-weight: 720; margin: 0 0 25px; }
+    .status { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+    .current { display: flex; align-items: center; gap: 12px; }
+    .week-number { display: grid; place-items: center; width: 48px; height: 48px; background: #17202b; color: white; border-radius: 12px; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .status-label { font-size: 13px; color: #687382; margin-bottom: 3px; }
+    .status-value { font-size: 15px; font-weight: 650; }
+    .date { font-size: 13px; color: #687382; }
+    .table-wrap { overflow-x: auto; border: 1px solid #dfe3e8; border-radius: 12px; background: white; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 19px 16px; border-bottom: 1px solid #e8ebef; vertical-align: top; }
+    thead th { background: #fbfcfd; font-size: 13px; font-weight: 650; }
+    thead th:first-child { width: 110px; }
+    thead span { display: block; margin-top: 6px; font-size: 12px; line-height: 1.5; font-weight: 400; color: #687382; }
+    tbody th { font-size: 13px; font-weight: 650; white-space: nowrap; }
+    tbody td { font-size: 14px; font-weight: 450; }
+    tbody tr:last-child > * { border-bottom: 0; }
+    tbody tr.active { background: #eef4ff; }
+    tbody tr.active th { color: #2459a6; }
+    .tag { display: inline-block; margin-top: 7px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #2459a6; }
+    footer { margin-top: 18px; font-size: 12px; color: #7c8794; }
+    @media (max-width: 620px) {
+      body { padding: 32px 12px; }
+      h1 { margin-bottom: 25px; }
+      .table-wrap { border-radius: 10px; }
+      table { table-layout: fixed; min-width: 0; }
+      thead th:first-child { width: 21%; }
+      thead th:not(:first-child) { width: 19.75%; }
+      th, td { padding: 13px 6px; overflow-wrap: anywhere; }
+      thead th { font-size: 11px; line-height: 1.35; }
+      thead span { font-size: 10px; line-height: 1.35; }
+      tbody th, tbody td { font-size: 11px; }
+      .tag { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Household / Weekly rotation</p>
+  <h1>Cleaning Schedule</h1>
+  <section class="status" aria-label="Current cleaning week">
+    <div class="current">
+      <div class="week-number" id="week-number">3</div>
+      <div><div class="status-label">Current rotation</div><div class="status-value" id="week-label">Week 3 of 4</div></div>
+    </div>
+    <div class="date" id="date-range"></div>
+  </section>
+  <div class="table-wrap">
+    <table aria-label="Four week cleaning schedule">
+      <thead><tr>
+        <th scope="col">Week</th>
+        <th scope="col">Common Space Floor<span>Vacuum / sweep and mop</span></th>
+        <th scope="col">Kitchen<span>Including stove, table, fridge and other furniture</span></th>
+        <th scope="col">Bathroom<span>Regularly used bathroom, floor in front and stairs</span></th>
+        <th scope="col">Rest Week</th>
+      </tr></thead>
+      <tbody id="schedule-body"></tbody>
+    </table>
+  </div>
+  <footer>Schedule repeats every four weeks · Updates automatically every Monday</footer>
+</main>
+<script>
+  // Edit these four variables to change the names throughout the schedule.
+  const name1 = "Ashraf";
+  const name2 = "Vladimir";
+  const name3 = "Samuel";
+  const name4 = "Rezwan";
+
+  // October 5, 2026 is Week 3. The rotation repeats every four weeks.
+  const start = new Date(2026, 9, 5); // month zero based, days 1 based.
+  const rotation = [
+    [name1, name2, name3, name4],
+    [name4, name1, name2, name3],
+    [name3, name4, name1, name2],
+    [name2, name3, name4, name1]
+  ];
+
+  function updateSchedule() {
+    const today = new Date();
+
+
+    const weeksPassed = Math.floor((today - start) / (7 * 24 * 60 * 60 * 1000)); // floor rounds it down
+
+    const currentWeek = ((weeksPassed + 2) % 4) + 1;
+
+    // +2 because we started in the first week, modulo 4 because it repeats in 4 week cycle and +1 because week zero is our week 0
+
+    document.getElementById("week-number").textContent = currentWeek;
+    document.getElementById("week-label").textContent = `Week ${currentWeek} of 4`;
+
+    const monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (today.getDay() + 6) % 7);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    const format = new Intl.DateTimeFormat("en", { month: "short", day: "numeric" });
+    document.getElementById("date-range").textContent = `${format.format(monday)} – ${format.format(sunday)}, ${sunday.getFullYear()}`;
+
+    document.getElementById("schedule-body").innerHTML = rotation.map((people, index) => {
+      const active = index + 1 === currentWeek;
+      return `<tr${active ? ' class="active" aria-current="true"' : ""}>
+        <th scope="row">Week ${index + 1}${active ? '<span class="tag" style="display:block">Current</span>' : ""}</th>
+        ${people.map(person => `<td>${person}</td>`).join("")}
+      </tr>`;
+    }).join("");
+  }
+
+  updateSchedule();
+  setInterval(updateSchedule, 60 * 1000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) updateSchedule(); });
+</script>
+</body>
+</html>
